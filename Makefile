@@ -1,0 +1,2 @@
+devchrome:
+	pnpm run dev
