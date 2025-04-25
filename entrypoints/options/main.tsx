@@ -1,10 +1,11 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import Options from "./Options";
-import "../../styles/global.css";
+import "@/styles/globals.css";
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const root = createRoot(document.getElementById("app")!);
+root.render(
   <React.StrictMode>
     <Options />
-  </React.StrictMode>,
+  </React.StrictMode>
 );
