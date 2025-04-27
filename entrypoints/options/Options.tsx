@@ -53,6 +53,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  Brush,
 } from "recharts";
 import { DayPicker } from "react-day-picker";
 
@@ -145,6 +146,12 @@ const Options: React.FC = () => {
     from: startOfToday(),
     to: endOfToday(),
   });
+  const [brushStartIndex, setBrushStartIndex] = useState<number | undefined>(
+    undefined
+  );
+  const [brushEndIndex, setBrushEndIndex] = useState<number | undefined>(
+    undefined
+  );
 
   const getStartTime = () => {
     const now = new Date();
@@ -440,6 +447,15 @@ const Options: React.FC = () => {
 
           setGroupedHistoryItems(sortedGrouped);
           setIsHistoryLoading(false);
+
+          // 设置 Brush 的默认范围（例如，显示最后 48 个点，如果数据足够多）
+          if (statistics.hourlyVisits.length > 48) {
+            setBrushStartIndex(statistics.hourlyVisits.length - 48);
+            setBrushEndIndex(statistics.hourlyVisits.length - 1);
+          } else {
+            setBrushStartIndex(0);
+            setBrushEndIndex(statistics.hourlyVisits.length - 1);
+          }
         }
       );
     };
@@ -762,9 +778,17 @@ const Options: React.FC = () => {
                 访问趋势
               </CardTitle>
             </CardHeader>
-            <div className="h-[300px]">
+            <div className="h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={statistics.hourlyVisits}>
+                <AreaChart
+                  data={statistics.hourlyVisits}
+                  margin={{
+                    top: 10,
+                    right: 30,
+                    left: 0,
+                    bottom: 5,
+                  }}
+                >
                   <defs>
                     <linearGradient
                       id="visitGradient"
@@ -794,7 +818,7 @@ const Options: React.FC = () => {
                     className="text-muted-foreground"
                     angle={-45}
                     textAnchor="end"
-                    height={60}
+                    height={100}
                     interval={0}
                     tick={(props) => {
                       const { x, y, payload } = props;
@@ -856,6 +880,15 @@ const Options: React.FC = () => {
                     dataKey="visits"
                     stroke="hsl(var(--primary))"
                     fill="url(#visitGradient)"
+                  />
+                  <Brush
+                    dataKey="label"
+                    height={30}
+                    stroke="hsl(var(--primary) / 0.5)"
+                    fill="hsl(var(--muted))"
+                    travellerWidth={10}
+                    startIndex={brushStartIndex}
+                    endIndex={brushEndIndex}
                   />
                 </AreaChart>
               </ResponsiveContainer>
