@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useSettings } from "../../hooks/useStorage";
-import "../../styles/options.css";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {

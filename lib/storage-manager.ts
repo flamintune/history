@@ -1,9 +1,11 @@
+import { PageView, PageViewSession } from './types';
 import type { HistoryStats } from "./history-analyzer";
 
 export const STORAGE_KEYS = {
   todayStats: "today-stats",
   weekStats: "week-stats",
   availableDates: "available-dates",
+  pageViews: "page-views", // 新增
   dailyStats: (date: string) => `stats-${date}`,
 };
 
@@ -61,7 +63,72 @@ export async function clearAllStats(): Promise<void> {
 
   try {
     await chrome.storage.local.remove(keysToRemove);
+    await clearAllPageViews(); // 同时清除页面浏览数据
   } catch (error) {
     console.error("Error clearing all stats:", error);
+  }
+}
+
+// 规范化 URL，移除查询参数和哈希
+function normalizeUrl(urlString: string): string {
+  try {
+    const url = new URL(urlString);
+    return `${url.protocol}//${url.hostname}${url.pathname}`;
+  } catch (error) {
+    // 对于无效 URL，返回原始字符串，尽管这种情况在扩展中较少见
+    return urlString;
+  }
+}
+
+// 获取所有页面浏览数据
+export async function getAllPageViews(): Promise<PageView[]> {
+  return await loadData(STORAGE_KEYS.pageViews, []);
+}
+
+// 保存页面浏览会话
+export async function savePageViewSession(
+  url: string,
+  session: PageViewSession,
+  faviconUrl?: string
+): Promise<void> {
+  const pageViews = await getAllPageViews();
+  const normalizedUrl = normalizeUrl(url);
+  const urlObject = new URL(url); // 假设 URL 是有效的
+
+  let pageView = pageViews.find((pv) => pv.url === normalizedUrl);
+
+  if (pageView) {
+    // 更新会话和总时长
+    pageView.sessions.push(session);
+    pageView.totalDuration += (session.endTime - session.startTime) / 1000;
+  } else {
+    // 创建新的 PageView
+    pageView = {
+      url: normalizedUrl,
+      hostname: urlObject.hostname,
+      faviconUrl,
+      sessions: [session],
+      totalDuration: (session.endTime - session.startTime) / 1000,
+    };
+    pageViews.push(pageView);
+  }
+
+  await saveData(STORAGE_KEYS.pageViews, pageViews);
+}
+
+// 删除特定页面的浏览数据
+export async function deletePageView(url: string): Promise<void> {
+  let pageViews = await getAllPageViews();
+  const normalizedUrl = normalizeUrl(url);
+  pageViews = pageViews.filter((pv) => pv.url !== normalizedUrl);
+  await saveData(STORAGE_KEYS.pageViews, pageViews);
+}
+
+// 清除所有页面浏览数据
+export async function clearAllPageViews(): Promise<void> {
+  try {
+    await chrome.storage.local.remove(STORAGE_KEYS.pageViews);
+  } catch (error) {
+    console.error("Error clearing page views:", error);
   }
 }
