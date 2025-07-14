@@ -1,84 +1,48 @@
-import { defineBackground } from 'wxt/sandbox';
-import { analyzeHistory, getTodayStats } from '../lib/history-analyzer';
-import { saveDailyStats } from '../lib/storage-manager';
+import { defineBackground } from "wxt/sandbox";
+import { getTodayStats, getWeekStats } from "@/lib/history-analyzer";
+import { saveData, STORAGE_KEYS } from "@/lib/storage-manager";
+
+const ALARM_NAME = "update-stats-alarm";
+
+async function updateStats() {
+  console.log("Updating stats...");
+  try {
+    const todayStats = await getTodayStats();
+    await saveData(STORAGE_KEYS.todayStats, todayStats);
+
+    const weekStats = await getWeekStats();
+    await saveData(STORAGE_KEYS.weekStats, weekStats);
+
+    console.log("Stats updated successfully.");
+  } catch (error) {
+    console.error("Error updating stats:", error);
+  }
+}
 
 export default defineBackground({
   main() {
-    // 初始化
-    setupAlarms();
-    
-    // 首次运行时收集数据
-    updateDailyStats();
-  }
-});
-
-// 设置每日定时任务
-function setupAlarms() {
-  // 每天午夜运行
-  chrome.alarms.create('dailyStats', {
-    periodInMinutes: 24 * 60, // 每24小时
-    when: getNextMidnight() // 下一个午夜时间点
-  });
-  
-  // 每小时更新今日数据
-  chrome.alarms.create('updateTodayStats', {
-    periodInMinutes: 60 // 每60分钟
-  });
-  
-  // 监听定时器触发
-  chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === 'dailyStats') {
-      // 每天午夜处理
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const dateString = yesterday.toISOString().split('T')[0];
-      
-      // 保存昨天的统计
-      collectAndSaveStats(dateString);
-    } else if (alarm.name === 'updateTodayStats') {
-      // 更新今天的统计
-      updateDailyStats();
-    }
-  });
-}
-
-// 获取下一个午夜的时间戳
-function getNextMidnight(): number {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(0, 0, 0, 0);
-  return tomorrow.getTime();
-}
-
-// 收集并保存指定日期的统计
-async function collectAndSaveStats(dateString: string): Promise<void> {
-  const date = new Date(dateString);
-  const startTime = date.getTime();
-  const endTime = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1).getTime() - 1;
-  
-  try {
-    const stats = await chrome.history.search({
-      text: '',
-      startTime,
-      endTime,
-      maxResults: 10000
+    // 扩展安装或浏览器启动时立即运行
+    chrome.runtime.onStartup.addListener(updateStats);
+    chrome.runtime.onInstalled.addListener((details) => {
+      if (details.reason === "install" || details.reason === "update") {
+        updateStats();
+      }
     });
-    
-    // 分析和保存历史数据
-    const analyzedStats = await analyzeHistory(startTime, endTime);
-    await saveDailyStats(dateString, analyzedStats);
-  } catch (error) {
-    console.error('Error collecting history stats:', error);
-  }
-}
 
-// 更新今天的统计
-async function updateDailyStats(): Promise<void> {
-  const today = new Date().toISOString().split('T')[0];
-  try {
-    const stats = await getTodayStats();
-    await saveDailyStats(today, stats);
-  } catch (error) {
-    console.error('Error updating today stats:', error);
-  }
-}
+    // 创建一个定时器，定期更新数据
+    chrome.alarms.create(ALARM_NAME, {
+      periodInMinutes: 15, // 每 15 分钟更新一次
+      delayInMinutes: 1, // 1 分钟后第一次执行
+    });
+
+    // 监听定时器
+    chrome.alarms.onAlarm.addListener((alarm) => {
+      if (alarm.name === ALARM_NAME) {
+        updateStats();
+      }
+    });
+
+    // 为了确保弹窗能立即响应，在 main 函数第一次执行时也更新一次
+    updateStats();
+  },
+});

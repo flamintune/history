@@ -1,31 +1,43 @@
 import { useState, useEffect } from "react";
-import { getTodayStats } from "@/lib/history-analyzer";
+import { loadData, STORAGE_KEYS } from "@/lib/storage-manager";
 import type { HistoryStats } from "@/lib/types";
 
 export function useTodayStats() {
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<HistoryStats | null>(null);
 
-  const loadData = async () => {
+  const loadInitialData = async () => {
     setIsLoading(true);
-    try {
-      const todayStats = await getTodayStats();
-      setStats(todayStats);
-    } catch (error) {
-      console.error("Error loading today's stats:", error);
-      setStats(null); // 在出错时设置为空
-    } finally {
-      setIsLoading(false);
-    }
+    const storedStats = await loadData<HistoryStats | null>(
+      STORAGE_KEYS.todayStats,
+      null
+    );
+    setStats(storedStats);
+    setIsLoading(false);
   };
 
   useEffect(() => {
-    loadData();
+    loadInitialData();
+
+    const handleStorageChange = (
+      changes: { [key: string]: chrome.storage.StorageChange },
+      areaName: string
+    ) => {
+      if (areaName === "local" && changes[STORAGE_KEYS.todayStats]) {
+        setStats(changes[STORAGE_KEYS.todayStats].newValue as HistoryStats);
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+
+    return () => {
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
   }, []);
 
   return {
     isLoading,
     stats,
-    refresh: loadData,
+    refresh: loadInitialData, // 保持 refresh 函数，以便手动刷新
   };
 }

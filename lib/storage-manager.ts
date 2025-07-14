@@ -1,47 +1,67 @@
 import type { HistoryStats } from "./history-analyzer";
 
+export const STORAGE_KEYS = {
+  todayStats: "today-stats",
+  weekStats: "week-stats",
+  availableDates: "available-dates",
+  dailyStats: (date: string) => `stats-${date}`,
+};
+
+export async function saveData<T>(key: string, data: T): Promise<void> {
+  try {
+    await chrome.storage.local.set({ [key]: data });
+  } catch (error) {
+    console.error(`Error saving data for key "${key}":`, error);
+  }
+}
+
+export async function loadData<T>(key: string, defaultValue: T): Promise<T> {
+  try {
+    const result = await chrome.storage.local.get(key);
+    return (result[key] as T) ?? defaultValue;
+  } catch (error) {
+    console.error(`Error loading data for key "${key}":`, error);
+    return defaultValue;
+  }
+}
+
 // 保存每日统计
 export async function saveDailyStats(
   date: string,
   stats: HistoryStats
 ): Promise<void> {
-  await chrome.storage.local.set({ [`stats_${date}`]: stats });
+  await saveData(STORAGE_KEYS.dailyStats(date), stats);
 
   // 更新统计日期列表
-  const { availableDates = [] } = await chrome.storage.local.get(
-    "availableDates"
-  );
-  if (!availableDates.includes(date)) {
-    availableDates.push(date);
-    await chrome.storage.local.set({ availableDates });
+  const dates = await loadData(STORAGE_KEYS.availableDates, [] as string[]);
+  if (!dates.includes(date)) {
+    dates.push(date);
+    await saveData(STORAGE_KEYS.availableDates, dates);
   }
 }
 
 // 加载特定日期的统计
 export async function loadStats(date: string): Promise<HistoryStats | null> {
-  const result = await chrome.storage.local.get(`stats_${date}`);
-  return result[`stats_${date}`] || null;
+  return await loadData(STORAGE_KEYS.dailyStats(date), null);
 }
 
 // 获取所有可用的统计日期
 export async function getAvailableDates(): Promise<string[]> {
-  const { availableDates = [] } = await chrome.storage.local.get(
-    "availableDates"
-  );
-  return availableDates.sort().reverse(); // 最新日期在前
+  const dates = await loadData(STORAGE_KEYS.availableDates, [] as string[]);
+  return dates.sort().reverse(); // 最新日期在前
 }
 
 // 清除所有统计数据
 export async function clearAllStats(): Promise<void> {
-  const { availableDates = [] } = await chrome.storage.local.get(
-    "availableDates"
-  );
+  const dates = await getAvailableDates();
+  const keysToRemove = dates.map(STORAGE_KEYS.dailyStats);
+  keysToRemove.push(STORAGE_KEYS.availableDates);
+  keysToRemove.push(STORAGE_KEYS.todayStats);
+  keysToRemove.push(STORAGE_KEYS.weekStats);
 
-  // 删除每个日期的统计数据
-  for (const date of availableDates) {
-    await chrome.storage.local.remove(`stats_${date}`);
+  try {
+    await chrome.storage.local.remove(keysToRemove);
+  } catch (error) {
+    console.error("Error clearing all stats:", error);
   }
-
-  // 清除日期列表
-  await chrome.storage.local.remove("availableDates");
 }
