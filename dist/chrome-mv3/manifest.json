@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "History Stats",
-  "description": "Statistics for your browser history",
+  "name": "CyberSurfing TimeLine BETA",
+  "description": "统计你的网上冲浪时间线,此扩展程序目前处于 Beta 版测试阶段",
   "version": "1.0.0",
   "icons": {
     "16": "icon/16.png",
     "32": "icon/32.png",
-    "48": "icon/48.png",
+    "38": "icon/38.png",
     "96": "icon/96.png",
     "128": "icon/128.png"
   },
@@ -21,6 +21,7 @@
     "open_in_tab": true,
     "page": "options.html"
   },
+  "content_scripts": [],
   "commands": {
     "wxt:reload-extension": {
       "description": "Reload the extension during development",
@@ -32,12 +33,14 @@
   "background": {
     "service_worker": "background.js"
   },
+  "chrome_url_overrides": {
+    "history": "history.html"
+  },
   "action": {
     "default_title": "History Stats",
     "default_popup": "popup.html"
   },
   "host_permissions": [
-    "*://*.google.com/*",
     "http://localhost/*"
   ],
   "content_security_policy": {

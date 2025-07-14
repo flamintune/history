@@ -7,9 +7,14 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const projectRoot = path.resolve(__dirname, '..'); // 假设脚本在 scripts 目录下
-const inputIconPath = path.join(projectRoot, 'public', 'icon.png');
-const outputDir = path.join(projectRoot, 'public', 'icon');
+// 解析命令行参数
+const args = process.argv.slice(2);
+const inputIconPath = args[0] 
+  ? path.resolve(args[0])
+  : path.join(__dirname, '..', 'public', 'icon.png');
+const outputDir = args[1]
+  ? path.resolve(args[1])
+  : path.join(__dirname, '..', 'public', 'icon');
 const sizes = [16, 32, 38, 96, 128];
 
 async function generateIcons() {

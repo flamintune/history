@@ -22,8 +22,8 @@ export default defineConfig({
     };
   },
   manifest: {
-    name: "History Stats",
-    description: "Statistics for your browser history",
+    name: "CyberSurfing TimeLine BETA",
+    description: "统计你的网上冲浪时间线,此扩展程序目前处于 Beta 版测试阶段",
     permissions: [
       "history", // 访问历史记录
       "storage", // 存储统计数据
@@ -34,6 +34,6 @@ export default defineConfig({
       page: "options.html",
       open_in_tab: true, // 设置为true会在新标签页打开，false则在弹出窗口中打开
     },
-    // 其他配置...
+    content_scripts: [],
   },
 });

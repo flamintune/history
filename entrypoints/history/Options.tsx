@@ -728,224 +728,228 @@ const Options: React.FC = () => {
 
       {/* 主要内容区域 */}
       <div className="container mx-auto p-8 space-y-8">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Card className="transition-all hover:shadow-md">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <BarChart className="h-5 w-5 text-primary" />
-                总访问次数
-              </CardTitle>
-              <p className="text-3xl font-bold text-primary">
-                {statistics.totalVisits}
-              </p>
-            </CardHeader>
-          </Card>
-          <Card className="transition-all hover:shadow-md">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Globe className="h-5 w-5 text-primary" />
-                不同网站数
-              </CardTitle>
-              <p className="text-3xl font-bold text-primary">
-                {statistics.uniqueDomains}
-              </p>
-            </CardHeader>
-          </Card>
-          <Card className="transition-all hover:shadow-md">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Timer className="h-5 w-5 text-primary" />
-                最常访问
-              </CardTitle>
-              <div className="mt-2">
-                <p className="text-lg font-medium text-primary">
-                  {statistics.mostVisitedDomain.domain}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  访问 {statistics.mostVisitedDomain.count} 次
-                </p>
-              </div>
-            </CardHeader>
-          </Card>
-        </div>
+        {!searchQuery && (
+          <>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <Card className="transition-all hover:shadow-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <BarChart className="h-5 w-5 text-primary" />
+                    总访问次数
+                  </CardTitle>
+                  <p className="text-3xl font-bold text-primary">
+                    {statistics.totalVisits}
+                  </p>
+                </CardHeader>
+              </Card>
+              <Card className="transition-all hover:shadow-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Globe className="h-5 w-5 text-primary" />
+                    不同网站数
+                  </CardTitle>
+                  <p className="text-3xl font-bold text-primary">
+                    {statistics.uniqueDomains}
+                  </p>
+                </CardHeader>
+              </Card>
+              <Card className="transition-all hover:shadow-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Timer className="h-5 w-5 text-primary" />
+                    最常访问
+                  </CardTitle>
+                  <div className="mt-2">
+                    <p className="text-lg font-medium text-primary">
+                      {statistics.mostVisitedDomain.domain}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      访问 {statistics.mostVisitedDomain.count} 次
+                    </p>
+                  </div>
+                </CardHeader>
+              </Card>
+            </div>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {/* 访问趋势图表 */}
-          <Card className="p-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart className="h-5 w-5 text-primary" />
-                访问趋势
-              </CardTitle>
-            </CardHeader>
-            <div className="h-[350px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={statistics.hourlyVisits}
-                  margin={{
-                    top: 10,
-                    right: 30,
-                    left: 0,
-                    bottom: 5,
-                  }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="visitGradient"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              {/* 访问趋势图表 */}
+              <Card className="p-4">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart className="h-5 w-5 text-primary" />
+                    访问趋势
+                  </CardTitle>
+                </CardHeader>
+                <div className="h-[350px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={statistics.hourlyVisits}
+                      margin={{
+                        top: 10,
+                        right: 30,
+                        left: 0,
+                        bottom: 5,
+                      }}
                     >
-                      <stop
-                        offset="5%"
-                        stopColor="hsl(var(--primary))"
-                        stopOpacity={0.2}
+                      <defs>
+                        <linearGradient
+                          id="visitGradient"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="hsl(var(--primary))"
+                            stopOpacity={0.2}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="hsl(var(--primary))"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        className="stroke-muted"
                       />
-                      <stop
-                        offset="95%"
-                        stopColor="hsl(var(--primary))"
-                        stopOpacity={0}
+                      <XAxis
+                        dataKey="label"
+                        className="text-muted-foreground"
+                        angle={-45}
+                        textAnchor="end"
+                        height={100}
+                        interval={0}
+                        tick={(props) => {
+                          const { x, y, payload } = props;
+                          const isEmptySequence = payload.value.includes("~");
+                          return (
+                            <g transform={`translate(${x},${y})`}>
+                              <text
+                                x={0}
+                                y={0}
+                                dy={16}
+                                textAnchor="end"
+                                fill="currentColor"
+                                className={cn(
+                                  "text-xs",
+                                  isEmptySequence
+                                    ? "text-muted-foreground/50"
+                                    : "text-muted-foreground"
+                                )}
+                                transform="rotate(-45)"
+                              >
+                                {payload.value}
+                              </text>
+                            </g>
+                          );
+                        }}
                       />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    className="stroke-muted"
-                  />
-                  <XAxis
-                    dataKey="label"
-                    className="text-muted-foreground"
-                    angle={-45}
-                    textAnchor="end"
-                    height={100}
-                    interval={0}
-                    tick={(props) => {
-                      const { x, y, payload } = props;
-                      const isEmptySequence = payload.value.includes("~");
-                      return (
-                        <g transform={`translate(${x},${y})`}>
-                          <text
-                            x={0}
-                            y={0}
-                            dy={16}
-                            textAnchor="end"
-                            fill="currentColor"
-                            className={cn(
-                              "text-xs",
-                              isEmptySequence
-                                ? "text-muted-foreground/50"
-                                : "text-muted-foreground"
-                            )}
-                            transform="rotate(-45)"
-                          >
-                            {payload.value}
-                          </text>
-                        </g>
-                      );
-                    }}
-                  />
-                  <YAxis className="text-muted-foreground" />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const data = payload[0].payload as HourlyVisit;
-                        return (
-                          <div className="rounded-lg border bg-background p-2 shadow-sm">
-                            <p className="text-sm font-medium">
-                              {data.isEmptySequence ? (
-                                <span className="text-muted-foreground">
-                                  无访问记录时段
-                                </span>
-                              ) : (
-                                format(
-                                  new Date(data.timestamp),
-                                  "yyyy年MM月dd日",
-                                  { locale: zhCN }
-                                )
-                              )}
-                            </p>
-                            <p className="text-sm font-medium">{data.label}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {`${data.visits} 次访问`}
-                            </p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="visits"
-                    stroke="hsl(var(--primary))"
-                    fill="url(#visitGradient)"
-                  />
-                  <Brush
-                    dataKey="label"
-                    height={30}
-                    stroke="hsl(var(--primary) / 0.5)"
-                    fill="hsl(var(--muted))"
-                    travellerWidth={10}
-                    startIndex={brushStartIndex}
-                    endIndex={brushEndIndex}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
+                      <YAxis className="text-muted-foreground" />
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload as HourlyVisit;
+                            return (
+                              <div className="rounded-lg border bg-background p-2 shadow-sm">
+                                <p className="text-sm font-medium">
+                                  {data.isEmptySequence ? (
+                                    <span className="text-muted-foreground">
+                                      无访问记录时段
+                                    </span>
+                                  ) : (
+                                    format(
+                                      new Date(data.timestamp),
+                                      "yyyy年MM月dd日",
+                                      { locale: zhCN }
+                                    )
+                                  )}
+                                </p>
+                                <p className="text-sm font-medium">{data.label}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {`${data.visits} 次访问`}
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="visits"
+                        stroke="hsl(var(--primary))"
+                        fill="url(#visitGradient)"
+                      />
+                      <Brush
+                        dataKey="label"
+                        height={30}
+                        stroke="hsl(var(--primary) / 0.5)"
+                        fill="hsl(var(--muted))"
+                        travellerWidth={10}
+                        startIndex={brushStartIndex}
+                        endIndex={brushEndIndex}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
 
-          {/* 域名分布饼图 */}
-          <Card className="p-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5 text-primary" />
-                域名分布
-              </CardTitle>
-            </CardHeader>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statistics.domainStats.slice(0, 5)}
-                    dataKey="visits"
-                    nameKey="domain"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label={({ domain, percentage }) =>
-                      `${domain} (${percentage.toFixed(1)}%)`
-                    }
-                  >
-                    {statistics.domainStats.slice(0, 5).map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
+              {/* 域名分布饼图 */}
+              <Card className="p-4">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe className="h-5 w-5 text-primary" />
+                    域名分布
+                  </CardTitle>
+                </CardHeader>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={statistics.domainStats.slice(0, 5)}
+                        dataKey="visits"
+                        nameKey="domain"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        label={({ domain, percentage }) =>
+                          `${domain} (${percentage.toFixed(1)}%)`
+                        }
+                      >
+                        {statistics.domainStats.slice(0, 5).map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="rounded-lg border bg-background p-2 shadow-sm">
+                                <p className="text-sm font-medium">{data.domain}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {data.visits} 次访问 ({data.percentage.toFixed(1)}
+                                  %)
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
                       />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const data = payload[0].payload;
-                        return (
-                          <div className="rounded-lg border bg-background p-2 shadow-sm">
-                            <p className="text-sm font-medium">{data.domain}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {data.visits} 次访问 ({data.percentage.toFixed(1)}
-                              %)
-                            </p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
             </div>
-          </Card>
-        </div>
+          </>
+        )}
 
         {/* 历史记录列表 */}
         <div className="space-y-8">
@@ -964,8 +968,10 @@ const Options: React.FC = () => {
           ) : (
             groupedHistoryItems.map((group) => (
               <div key={group.hour} className="space-y-8">
-                {/* 小时分割线 */}
-                <div className="relative mb-6">
+                {!searchQuery && (
+                  <>
+                    {/* 小时分割线 */}
+                    <div className="relative mb-6">
                   <div className="w-full">
                     <div className="flex items-center gap-2">
                       <div className="h-px flex-1 bg-primary/20" />
@@ -979,6 +985,8 @@ const Options: React.FC = () => {
                     </div>
                   </div>
                 </div>
+                  </>
+                )}
 
                 {group.items.map((item) => (
                   <Card
