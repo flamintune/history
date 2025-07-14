@@ -55,6 +55,7 @@ import {
   Brush,
 } from "recharts";
 import { DayPicker } from "react-day-picker";
+import { PageViewList } from "../../components/PageViewList";
 
 interface HistoryItem {
   id: string;
@@ -945,6 +946,17 @@ const Options: React.FC = () => {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card className="lg:col-span-3">
+                <CardHeader>
+                  <CardTitle>Page Views</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <PageViewList />
+                </CardContent>
               </Card>
             </div>
           </>
