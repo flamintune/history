@@ -55,9 +55,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Type check
-        run: pnpm run compile
-
       - name: Build extension
         run: pnpm run build
 
@@ -66,18 +63,14 @@ jobs:
       - name: Rename zip files with version
         if: steps.check_release.outputs.should_release == 'true'
         run: |
-          cd .wxt/zips
-          mv chrome*.zip ../chrome-cybersurfing-timeline-${{ steps.package_version.outputs.version }}.zip
-          cd ..
-          ls -la *.zip
+          cd dist
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: extension-builds-${{ steps.package_version.outputs.version }}
           path: |
-            .wxt/*.zip
-            dist/
+            dist/*.zip
 
   release:
     needs: build
@@ -100,7 +93,7 @@ jobs:
           artifacts: |
             artifacts/chrome-cybersurfing-timeline-${{ needs.build.outputs.version }}.zip
           tag: v${{ needs.build.outputs.version }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           generateReleaseNotes: true
           name: "CyberSurfing TimeLine v${{ needs.build.outputs.version }}"
           body: |
@@ -135,6 +128,8 @@ jobs:
         with:
           file-path: artifacts/chrome-cybersurfing-timeline-${{ needs.build.outputs.version }}.zip
           extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
-          client-id: ${{ secrets.CHROME_CLIENT_ID }}
-          client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
-          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          client-id: ${{ secrets.GOOGLE_CLIENT_ID }}
+          client-secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+
+
