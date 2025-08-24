@@ -6,9 +6,10 @@ interface StatCardProps {
   icon: LucideIcon;
   title: string;
   value: string | number;
+  subtitle?: string;
 }
 
-export const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value }) => {
+export const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, subtitle }) => {
   return (
     <Card>
       <CardHeader className="p-4">
@@ -17,6 +18,7 @@ export const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value }) 
           {title}
         </CardTitle>
         <p className="text-2xl font-bold">{value}</p>
+        {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
       </CardHeader>
     </Card>
   );
